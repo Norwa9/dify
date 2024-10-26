@@ -242,7 +242,10 @@ x-shared-env: &shared-api-worker-env
 services:
   # API service
   api:
-    image: langgenius/dify-api:0.10.1
+#    image: langgenius/dify-api:0.10.1
+    build:
+      context: ../api
+      dockerfile: Dockerfile  # 请确保api目录下存在Dockerfile
     restart: always
     environment:
       # Use the shared environment variables.
@@ -262,7 +265,10 @@ services:
   # worker service
   # The Celery worker for processing the queue.
   worker:
-    image: langgenius/dify-api:0.10.1
+#    image: langgenius/dify-api:0.10.1 # worker依赖api目录下代码，如果有变更，需要换成我的最新代码
+    build:
+      context: ../api
+      dockerfile: Dockerfile
     restart: always
     environment:
       # Use the shared environment variables.
@@ -281,7 +287,9 @@ services:
 
   # Frontend web application.
   web:
-    image: langgenius/dify-web:0.10.1
+    build:
+      context: ../web
+      dockerfile: Dockerfile  # 请确保web目录下存在Dockerfile
     restart: always
     environment:
       CONSOLE_API_URL: ${CONSOLE_API_URL:-}
