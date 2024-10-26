@@ -88,7 +88,9 @@ class KnowledgeRetrievalNode(BaseNode[KnowledgeRetrievalNodeData]):
             if len(node_data.authorized_dataset_ids_variable_selector) >= 2:
                 authorized_dataset_ids = variable_pool.get(node_data.authorized_dataset_ids_variable_selector)
         if authorized_dataset_ids:
-            for dataset_id in authorized_dataset_ids:
+            dataset_ids = authorized_dataset_ids.value
+            for dataset_id in dataset_ids:
+                dataset_id = str(dataset_id)
                 if not is_valid_uuid(dataset_id):
                     return NodeRunResult(
                         status=WorkflowNodeExecutionStatus.FAILED,
@@ -96,7 +98,7 @@ class KnowledgeRetrievalNode(BaseNode[KnowledgeRetrievalNodeData]):
                         error="Authorized dataset id is not valid."
                     )
             # take the union of the datasets to remove duplicates
-            node_data.dataset_ids = set(node_data.dataset_ids + authorized_dataset_ids)
+            node_data.dataset_ids = set(node_data.dataset_ids + authorized_dataset_ids.value)
 
     def _fetch_dataset_retriever(self, node_data: KnowledgeRetrievalNodeData, query: str) -> list[dict[str, Any]]:
         available_datasets = []
