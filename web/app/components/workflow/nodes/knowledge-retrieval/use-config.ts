@@ -55,6 +55,13 @@ const useConfig = (id: string, payload: KnowledgeRetrievalNodeType) => {
     setInputs(newInputs)
   }, [inputs, setInputs])
 
+  const handleAuthorizedDatasetIdsChange = useCallback((newVar: ValueSelector | string) => {
+    const newInputs = produce(inputs, (draft) => {
+      draft.authorized_dataset_ids_variable_selector = newVar as ValueSelector
+    })
+    setInputs(newInputs)
+  }, [inputs, setInputs])
+
   const {
     currentProvider,
     currentModel,
@@ -296,6 +303,7 @@ const useConfig = (id: string, payload: KnowledgeRetrievalNodeType) => {
     runResult,
     rerankModelOpen,
     setRerankModelOpen,
+    handleAuthorizedDatasetIdsChange
   }
 }
 

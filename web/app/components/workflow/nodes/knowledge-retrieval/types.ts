@@ -32,6 +32,7 @@ export type SingleRetrievalConfig = {
 export type KnowledgeRetrievalNodeType = CommonNodeType & {
   query_variable_selector: ValueSelector
   dataset_ids: string[]
+  authorized_dataset_ids_variable_selector: ValueSelector
   retrieval_mode: RETRIEVE_TYPE
   multiple_retrieval_config?: MultipleRetrievalConfig
   single_retrieval_config?: SingleRetrievalConfig

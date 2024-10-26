@@ -10,6 +10,7 @@ const i18nPrefix = 'workflow'
 const nodeDefault: NodeDefault<KnowledgeRetrievalNodeType> = {
   defaultValue: {
     query_variable_selector: [],
+    authorized_dataset_ids_variable_selector: [],
     dataset_ids: [],
     retrieval_mode: RETRIEVE_TYPE.multiWay,
     multiple_retrieval_config: {

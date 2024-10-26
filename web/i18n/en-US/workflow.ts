@@ -356,6 +356,8 @@ const translation = {
     knowledgeRetrieval: {
       queryVariable: 'Query Variable',
       knowledge: 'Knowledge',
+      dynamicKnowledge: 'Dynamic Knowledge',
+      dynamicKnowledgeTip: 'Supports using variables to dynamically specify the list of knowledge base IDs to be retrieved (the list of knowledge bases selected by default is retrieved by taking the union of the list of knowledge bases to be retrieved)',
       outputVars: {
         output: 'Retrieval segmented data',
         content: 'Segmented content',

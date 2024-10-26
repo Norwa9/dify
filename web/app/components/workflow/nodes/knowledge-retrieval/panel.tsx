@@ -3,6 +3,7 @@ import {
   memo,
   useCallback,
 } from 'react'
+import React from 'react'
 import { useTranslation } from 'react-i18next'
 import VarReferencePicker from '../_base/components/variable/var-reference-picker'
 import useConfig from './use-config'
@@ -16,6 +17,8 @@ import OutputVars, { VarItem } from '@/app/components/workflow/nodes/_base/compo
 import { InputVarType, type NodePanelProps } from '@/app/components/workflow/types'
 import BeforeRunForm from '@/app/components/workflow/nodes/_base/components/before-run-form'
 import ResultPanel from '@/app/components/workflow/run/result-panel'
+import { VarType } from '@/app/components/workflow/types'
+import type { Var } from '@/app/components/workflow/types'
 
 const i18nPrefix = 'workflow.nodes.knowledgeRetrieval'
 
@@ -24,6 +27,10 @@ const Panel: FC<NodePanelProps<KnowledgeRetrievalNodeType>> = ({
   data,
 }) => {
   const { t } = useTranslation()
+
+  const arrayStringfilterVar = React.useCallback((varPayload: Var) => {
+    return varPayload.type === VarType.arrayString
+  }, [])
 
   const {
     readOnly,
@@ -46,6 +53,7 @@ const Panel: FC<NodePanelProps<KnowledgeRetrievalNodeType>> = ({
     runResult,
     rerankModelOpen,
     setRerankModelOpen,
+    handleAuthorizedDatasetIdsChange,
   } = useConfig(id, data)
 
   const handleOpenFromPropsChange = useCallback((openFromProps: boolean) => {
@@ -105,6 +113,22 @@ const Panel: FC<NodePanelProps<KnowledgeRetrievalNodeType>> = ({
             readonly={readOnly}
           />
         </Field>
+
+        <Field
+          title={<>
+            {t(`${i18nPrefix}.dynamicKnowledge`)}
+          </>}
+        >
+          <VarReferencePicker
+            nodeId={id}
+            readonly={readOnly}
+            isShowNodeName
+            value={inputs.authorized_dataset_ids_variable_selector ? inputs.authorized_dataset_ids_variable_selector : []}
+            onChange={handleAuthorizedDatasetIdsChange}
+            filterVar={arrayStringfilterVar}
+          />
+        </Field>
+
       </div>
 
       <Split />

@@ -237,6 +237,7 @@ export const NODES_INITIAL_DATA = {
     title: '',
     desc: '',
     query_variable_selector: [],
+    authorized_dataset_ids_variable_selector: [],
     dataset_ids: [],
     retrieval_mode: 'single',
     ...KnowledgeRetrievalDefault.defaultValue,

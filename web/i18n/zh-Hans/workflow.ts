@@ -356,6 +356,8 @@ const translation = {
     knowledgeRetrieval: {
       queryVariable: '查询变量',
       knowledge: '知识库',
+      dynamicKnowledge: '动态知识库',
+      dynamicKnowledgeTip: '支持使用变量动态指定检索的知识库id列表（与默认选中的知识库列表取并集检索召回）',
       outputVars: {
         output: '召回的分段',
         content: '分段内容',

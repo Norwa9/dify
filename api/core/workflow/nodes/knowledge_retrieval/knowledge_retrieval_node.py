@@ -16,12 +16,15 @@ from core.rag.retrieval.dataset_retrieval import DatasetRetrieval
 from core.rag.retrieval.retrieval_methods import RetrievalMethod
 from core.variables import StringSegment
 from core.workflow.entities.node_entities import NodeRunResult
+from core.workflow.entities.variable_pool import ValueType, VariablePool
 from core.workflow.nodes.base import BaseNode
 from core.workflow.nodes.enums import NodeType
 from core.workflow.nodes.knowledge_retrieval.entities import KnowledgeRetrievalNodeData
 from extensions.ext_database import db
 from models.dataset import Dataset, Document, DocumentSegment
 from models.workflow import WorkflowNodeExecutionStatus
+import uuid
+from typing import Any, Optional, cast
 
 logger = logging.getLogger(__name__)
 
@@ -33,6 +36,14 @@ default_retrieval_model = {
     "score_threshold_enabled": False,
 }
 
+def is_valid_uuid(s):
+    try:
+        # Try parsing a string into a UUID object
+        uuid.UUID(s)
+        return True
+    except ValueError:
+        # Parsing failed, indicating that the string is not a valid UUID
+        return False
 
 class KnowledgeRetrievalNode(BaseNode[KnowledgeRetrievalNodeData]):
     _node_data_cls = KnowledgeRetrievalNodeData
@@ -53,6 +64,9 @@ class KnowledgeRetrievalNode(BaseNode[KnowledgeRetrievalNodeData]):
             return NodeRunResult(
                 status=WorkflowNodeExecutionStatus.FAILED, inputs=variables, error="Query is required."
             )
+
+        self._extract_authorized_dataset_ids(self.graph_runtime_state.variable_pool, self.node_data, variables)
+
         # retrieve knowledge
         try:
             results = self._fetch_dataset_retriever(node_data=self.node_data, query=query)
@@ -64,6 +78,27 @@ class KnowledgeRetrievalNode(BaseNode[KnowledgeRetrievalNodeData]):
         except Exception as e:
             logger.exception("Error when running knowledge retrieval node")
             return NodeRunResult(status=WorkflowNodeExecutionStatus.FAILED, inputs=variables, error=str(e))
+
+    def _extract_authorized_dataset_ids(self, variable_pool: VariablePool, node_data: KnowledgeRetrievalNodeData,
+                                        variables: Optional[dict]):
+        authorized_dataset_ids = []
+        # check node_data.authorized_dataset_ids_variable_selector
+        if isinstance(node_data.authorized_dataset_ids_variable_selector, list):
+            if len(node_data.authorized_dataset_ids_variable_selector) >= 2:
+                authorized_dataset_ids = variable_pool.get_variable_value(
+                    variable_selector=node_data.authorized_dataset_ids_variable_selector,
+                    target_value_type=ValueType.ARRAY_STRING
+                )
+        if authorized_dataset_ids:
+            for dataset_id in authorized_dataset_ids:
+                if not is_valid_uuid(dataset_id):
+                    return NodeRunResult(
+                        status=WorkflowNodeExecutionStatus.FAILED,
+                        inputs=variables,
+                        error="Authorized dataset id is not valid."
+                    )
+            # take the union of the datasets to remove duplicates
+            node_data.dataset_ids = set(node_data.dataset_ids + authorized_dataset_ids)
 
     def _fetch_dataset_retriever(self, node_data: KnowledgeRetrievalNodeData, query: str) -> list[dict[str, Any]]:
         available_datasets = []

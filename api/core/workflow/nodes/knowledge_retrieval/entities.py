@@ -80,6 +80,7 @@ class KnowledgeRetrievalNodeData(BaseNodeData):
 
     type: str = "knowledge-retrieval"
     query_variable_selector: list[str]
+    authorized_dataset_ids_variable_selector: Optional[Union[list[str], str]] = None
     dataset_ids: list[str]
     retrieval_mode: Literal["single", "multiple"]
     multiple_retrieval_config: Optional[MultipleRetrievalConfig] = None
