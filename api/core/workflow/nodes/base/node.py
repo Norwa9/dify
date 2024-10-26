@@ -1,4 +1,5 @@
 import logging
+import traceback
 from abc import abstractmethod
 from collections.abc import Generator, Mapping, Sequence
 from typing import TYPE_CHECKING, Any, Generic, Optional, TypeVar, Union, cast
@@ -70,6 +71,7 @@ class BaseNode(Generic[GenericNodeData]):
             result = self._run()
         except Exception as e:
             logger.error(f"Node {self.node_id} failed to run: {e}")
+            traceback.print_exc()
             result = NodeRunResult(
                 status=WorkflowNodeExecutionStatus.FAILED,
                 error=str(e),

@@ -1,6 +1,7 @@
 import logging
+import uuid
 from collections.abc import Mapping, Sequence
-from typing import Any, cast
+from typing import Any, Optional, cast
 
 from sqlalchemy import func
 
@@ -17,15 +18,12 @@ from core.rag.retrieval.retrieval_methods import RetrievalMethod
 from core.variables import StringSegment
 from core.workflow.entities.node_entities import NodeRunResult
 from core.workflow.entities.variable_pool import VariablePool
-from core.variables import SegmentType
 from core.workflow.nodes.base import BaseNode
 from core.workflow.nodes.enums import NodeType
 from core.workflow.nodes.knowledge_retrieval.entities import KnowledgeRetrievalNodeData
 from extensions.ext_database import db
 from models.dataset import Dataset, Document, DocumentSegment
 from models.workflow import WorkflowNodeExecutionStatus
-import uuid
-from typing import Any, Optional, cast
 
 logger = logging.getLogger(__name__)
 
@@ -37,6 +35,7 @@ default_retrieval_model = {
     "score_threshold_enabled": False,
 }
 
+
 def is_valid_uuid(s):
     try:
         # Try parsing a string into a UUID object
@@ -45,6 +44,7 @@ def is_valid_uuid(s):
     except ValueError:
         # Parsing failed, indicating that the string is not a valid UUID
         return False
+
 
 class KnowledgeRetrievalNode(BaseNode[KnowledgeRetrievalNodeData]):
     _node_data_cls = KnowledgeRetrievalNodeData
