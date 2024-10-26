@@ -129,8 +129,10 @@ class WorkflowConverter:
             for http_request_node in http_request_nodes:
                 graph = self._append_node(graph, http_request_node)
 
+        print(f'app_config = {app_config}')
         # convert to knowledge retrieval node
         if app_config.dataset:
+            print('app_config.dataset = True')
             knowledge_retrieval_node = self._convert_to_knowledge_retrieval_node(
                 new_app_mode=new_app_mode, dataset_config=app_config.dataset, model_config=app_config.model
             )
@@ -334,15 +336,21 @@ class WorkflowConverter:
         :return:
         """
         retrieve_config = dataset_config.retrieve_config
+        print(f'dataset_config.retrieve_config = {dataset_config.retrieve_config}')
         if new_app_mode == AppMode.ADVANCED_CHAT:
             query_variable_selector = ["sys", "query"]
             authorized_dataset_ids_variable_selector = ["sys", "query"]
+            print(f'authorized_dataset_ids_variable_selector:{authorized_dataset_ids_variable_selector}')
         elif retrieve_config.query_variable:
             # fetch query variable
             query_variable_selector = ["start", retrieve_config.query_variable]
             authorized_dataset_ids_variable_selector = ["start", retrieve_config.query_variable]
+            print(f'authorized_dataset_ids_variable_selector:{authorized_dataset_ids_variable_selector}')
         else:
+            print('no no no no no no no no no no no no no no no no no no no no ')
             return None
+
+        print(111111111111111111111111111111111)
 
         return {
             "id": "knowledge_retrieval",

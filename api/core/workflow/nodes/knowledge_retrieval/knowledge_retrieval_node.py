@@ -16,7 +16,8 @@ from core.rag.retrieval.dataset_retrieval import DatasetRetrieval
 from core.rag.retrieval.retrieval_methods import RetrievalMethod
 from core.variables import StringSegment
 from core.workflow.entities.node_entities import NodeRunResult
-from core.workflow.entities.variable_pool import ValueType, VariablePool
+from core.workflow.entities.variable_pool import VariablePool
+from core.variables import SegmentType
 from core.workflow.nodes.base import BaseNode
 from core.workflow.nodes.enums import NodeType
 from core.workflow.nodes.knowledge_retrieval.entities import KnowledgeRetrievalNodeData
@@ -85,10 +86,7 @@ class KnowledgeRetrievalNode(BaseNode[KnowledgeRetrievalNodeData]):
         # check node_data.authorized_dataset_ids_variable_selector
         if isinstance(node_data.authorized_dataset_ids_variable_selector, list):
             if len(node_data.authorized_dataset_ids_variable_selector) >= 2:
-                authorized_dataset_ids = variable_pool.get_variable_value(
-                    variable_selector=node_data.authorized_dataset_ids_variable_selector,
-                    target_value_type=ValueType.ARRAY_STRING
-                )
+                authorized_dataset_ids = variable_pool.get(node_data.authorized_dataset_ids_variable_selector)
         if authorized_dataset_ids:
             for dataset_id in authorized_dataset_ids:
                 if not is_valid_uuid(dataset_id):
