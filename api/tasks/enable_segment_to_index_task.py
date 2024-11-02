@@ -11,10 +11,11 @@ from core.rag.models.document import Document
 from extensions.ext_database import db
 from extensions.ext_redis import redis_client
 from models.dataset import DocumentSegment
+from services.dataset_service import DocumentService
 
 
 @shared_task(queue="dataset")
-def enable_segment_to_index_task(segment_id: str):
+def enable_segment_to_index_task(dataset_id:str, segment_id: str):
     """
     Async enable segment to index
     :param segment_id:
@@ -25,6 +26,8 @@ def enable_segment_to_index_task(segment_id: str):
     start_at = time.perf_counter()
 
     segment = db.session.query(DocumentSegment).filter(DocumentSegment.id == segment_id).first()
+    document_id = str(segment.document_id)
+    dataset_document = DocumentService.get_document(dataset_id, document_id)
     if not segment:
         raise NotFound("Segment not found")
 
@@ -34,14 +37,17 @@ def enable_segment_to_index_task(segment_id: str):
     indexing_cache_key = "segment_{}_indexing".format(segment.id)
 
     try:
+        metadata = {
+            "doc_id": segment.index_node_id,
+            "doc_hash": segment.index_node_hash,
+            "document_id": segment.document_id,
+            "dataset_id": segment.dataset_id,
+        }
+        if dataset_document.doc_metadata:
+            metadata["doc_metadata"] = dataset_document.doc_metadata
         document = Document(
             page_content=segment.content,
-            metadata={
-                "doc_id": segment.index_node_id,
-                "doc_hash": segment.index_node_hash,
-                "document_id": segment.document_id,
-                "dataset_id": segment.dataset_id,
-            },
+            metadata=metadata,
         )
 
         dataset = segment.dataset

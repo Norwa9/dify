@@ -180,7 +180,7 @@ class DatasetDocumentSegmentApi(Resource):
             # Set cache to prevent indexing the same segment multiple times
             redis_client.setex(indexing_cache_key, 600, 1)
 
-            enable_segment_to_index_task.delay(segment.id)
+            enable_segment_to_index_task.delay(dataset_id, segment.id)
 
             return {"result": "success"}, 200
         elif action == "disable":

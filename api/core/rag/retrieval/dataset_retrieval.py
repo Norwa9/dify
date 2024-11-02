@@ -28,6 +28,7 @@ from core.rag.retrieval.router.multi_dataset_react_route import ReactMultiDatase
 from core.tools.tool.dataset_retriever.dataset_multi_retriever_tool import DatasetMultiRetrieverTool
 from core.tools.tool.dataset_retriever.dataset_retriever_base_tool import DatasetRetrieverBaseTool
 from core.tools.tool.dataset_retriever.dataset_retriever_tool import DatasetRetrieverTool
+from core.workflow.nodes.metadata_entities import MetadataFilterConfig
 from extensions.ext_database import db
 from models.dataset import Dataset, DatasetQuery, DocumentSegment
 from models.dataset import Document as DatasetDocument
@@ -252,6 +253,7 @@ class DatasetRetrieval:
         model_config: ModelConfigWithCredentialsEntity,
         planning_strategy: PlanningStrategy,
         message_id: Optional[str] = None,
+        filter_mode_to_metadata_filter_config_dict: Optional[dict[str, MetadataFilterConfig]] = None
     ):
         tools = []
         for dataset in available_datasets:
@@ -335,6 +337,7 @@ class DatasetRetrieval:
                             score_threshold=score_threshold,
                             reranking_model=reranking_model,
                             reranking_mode=retrieval_model_config.get("reranking_mode", "reranking_model"),
+                            filter_mode_to_metadata_filter_config_dict=filter_mode_to_metadata_filter_config_dict,
                             weights=retrieval_model_config.get("weights", None),
                         )
                 self._on_query(query, [dataset_id], app_id, user_from, user_id)
@@ -360,6 +363,7 @@ class DatasetRetrieval:
         weights: Optional[dict] = None,
         reranking_enable: bool = True,
         message_id: Optional[str] = None,
+        filter_mode_to_metadata_filter_config_dict: Optional[dict[str, MetadataFilterConfig]] = None,
     ):
         threads = []
         all_documents = []
@@ -375,6 +379,7 @@ class DatasetRetrieval:
                     "query": query,
                     "top_k": top_k,
                     "all_documents": all_documents,
+                    'filter_mode_to_metadata_filter_config_dict': filter_mode_to_metadata_filter_config_dict,
                 },
             )
             threads.append(retrieval_thread)
@@ -454,7 +459,8 @@ class DatasetRetrieval:
             db.session.add_all(dataset_queries)
         db.session.commit()
 
-    def _retriever(self, flask_app: Flask, dataset_id: str, query: str, top_k: int, all_documents: list):
+    def _retriever(self, flask_app: Flask, dataset_id: str, query: str, top_k: int, all_documents: list,
+                   filter_mode_to_metadata_filter_config_dict: Optional[dict[str, MetadataFilterConfig]]):
         with flask_app.app_context():
             dataset = db.session.query(Dataset).filter(Dataset.id == dataset_id).first()
 
@@ -506,6 +512,7 @@ class DatasetRetrieval:
                             else None,
                             reranking_mode=retrieval_model.get("reranking_mode") or "reranking_model",
                             weights=retrieval_model.get("weights", None),
+                            filter_mode_to_metadata_filter_config_dict=filter_mode_to_metadata_filter_config_dict
                         )
 
                         all_documents.extend(documents)

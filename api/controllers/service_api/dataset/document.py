@@ -44,6 +44,8 @@ class DocumentAddByTextApi(DatasetApiResource):
             "indexing_technique", type=str, choices=Dataset.INDEXING_TECHNIQUE_LIST, nullable=False, location="json"
         )
         parser.add_argument("retrieval_model", type=dict, required=False, nullable=False, location="json")
+        parser.add_argument('doc_metadata', type=str, required=False, nullable=True, location='json')
+        parser.add_argument('doc_type', type=str, required=False, nullable=True, location='json')
         args = parser.parse_args()
         dataset_id = str(dataset_id)
         tenant_id = str(tenant_id)
@@ -91,6 +93,8 @@ class DocumentUpdateByTextApi(DatasetApiResource):
         parser.add_argument("text", type=str, required=False, nullable=True, location="json")
         parser.add_argument("process_rule", type=dict, required=False, nullable=True, location="json")
         parser.add_argument("doc_form", type=str, default="text_model", required=False, nullable=False, location="json")
+        parser.add_argument('doc_metadata', type=str, required=False, nullable=True, location='json')
+        parser.add_argument('doc_type', type=str, required=False, nullable=True, location='json')
         parser.add_argument(
             "doc_language", type=str, default="English", required=False, nullable=False, location="json"
         )
@@ -331,6 +335,28 @@ class DocumentIndexingStatusApi(DatasetApiResource):
         return data
 
 
+class DocumentExistsApi(DatasetApiResource):
+    def get(self, tenant_id, dataset_id, document_id):
+        """Check if document exists."""
+        dataset_id = str(dataset_id)
+        tenant_id = str(tenant_id)
+        document_id = str(document_id)
+
+        # get dataset info
+        dataset = db.session.query(Dataset).filter(Dataset.tenant_id == tenant_id, Dataset.id == dataset_id).first()
+
+        if not dataset:
+            raise NotFound("Dataset not found.")
+
+        # Check if document exists in the dataset
+        document = DocumentService.get_document(dataset.id, document_id)
+
+        # Return the result based on the document existence
+        if document:
+            return {"exists": True, "document_id": document_id}, 200
+        else:
+            return {"exists": False, "document_id": document_id}, 404
+
 api.add_resource(DocumentAddByTextApi, "/datasets/<uuid:dataset_id>/document/create_by_text")
 api.add_resource(DocumentAddByFileApi, "/datasets/<uuid:dataset_id>/document/create_by_file")
 api.add_resource(DocumentUpdateByTextApi, "/datasets/<uuid:dataset_id>/documents/<uuid:document_id>/update_by_text")
@@ -338,3 +364,4 @@ api.add_resource(DocumentUpdateByFileApi, "/datasets/<uuid:dataset_id>/documents
 api.add_resource(DocumentDeleteApi, "/datasets/<uuid:dataset_id>/documents/<uuid:document_id>")
 api.add_resource(DocumentListApi, "/datasets/<uuid:dataset_id>/documents")
 api.add_resource(DocumentIndexingStatusApi, "/datasets/<uuid:dataset_id>/documents/<string:batch>/indexing-status")
+api.add_resource(DocumentExistsApi, "/datasets/<uuid:dataset_id>/documents/<uuid:document_id>/exists")

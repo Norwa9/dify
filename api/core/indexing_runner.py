@@ -167,14 +167,17 @@ class IndexingRunner:
                 for document_segment in document_segments:
                     # transform segment to node
                     if document_segment.status != "completed":
+                        metadata = {
+                            "doc_id": document_segment.index_node_id,
+                            "doc_hash": document_segment.index_node_hash,
+                            "document_id": document_segment.document_id,
+                            "dataset_id": document_segment.dataset_id,
+                        }
+                        if dataset_document.doc_metadata:
+                            metadata["doc_metadata"] = dataset_document.doc_metadata
                         document = Document(
                             page_content=document_segment.content,
-                            metadata={
-                                "doc_id": document_segment.index_node_id,
-                                "doc_hash": document_segment.index_node_hash,
-                                "document_id": document_segment.document_id,
-                                "dataset_id": document_segment.dataset_id,
-                            },
+                            metadata=metadata
                         )
 
                         documents.append(document)
@@ -365,6 +368,7 @@ class IndexingRunner:
         for text_doc in text_docs:
             text_doc.metadata["document_id"] = dataset_document.id
             text_doc.metadata["dataset_id"] = dataset_document.dataset_id
+            text_doc.metadata['doc_metadata'] = dataset_document.doc_metadata
 
         return text_docs
 
@@ -542,9 +546,8 @@ class IndexingRunner:
                 document_qa_list = self.format_split_text(response)
                 qa_documents = []
                 for result in document_qa_list:
-                    qa_document = Document(
-                        page_content=result["question"], metadata=document_node.metadata.model_copy()
-                    )
+                    qa_document = Document(page_content=result['question'],
+                                           metadata=document_node.metadata.model_copy())
                     doc_id = str(uuid.uuid4())
                     hash = helper.generate_text_hash(result["question"])
                     qa_document.metadata["answer"] = result["answer"]
@@ -789,20 +792,23 @@ class IndexingRunner:
         db.session.commit()
 
     @staticmethod
-    def batch_add_segments(segments: list[DocumentSegment], dataset: Dataset):
+    def batch_add_segments(segments: list[DocumentSegment], dataset_document: DatasetDocument, dataset: Dataset):
         """
         Batch add segments index processing
         """
         documents = []
         for segment in segments:
+            metadata = {
+                "doc_id": segment.index_node_id,
+                "doc_hash": segment.index_node_hash,
+                "document_id": segment.document_id,
+                "dataset_id": segment.dataset_id,
+            }
+            if dataset_document.doc_metadata:
+                metadata["doc_metadata"] = dataset_document.doc_metadata
             document = Document(
                 page_content=segment.content,
-                metadata={
-                    "doc_id": segment.index_node_id,
-                    "doc_hash": segment.index_node_hash,
-                    "document_id": segment.document_id,
-                    "dataset_id": segment.dataset_id,
-                },
+                metadata=metadata,
             )
             documents.append(document)
         # save vector index

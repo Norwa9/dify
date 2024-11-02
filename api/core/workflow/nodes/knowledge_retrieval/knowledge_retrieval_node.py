@@ -66,7 +66,10 @@ class KnowledgeRetrievalNode(BaseNode[KnowledgeRetrievalNodeData]):
                 status=WorkflowNodeExecutionStatus.FAILED, inputs=variables, error="Query is required."
             )
 
+        # 从节点提取 dataset_ids
         self._extract_authorized_dataset_ids(self.graph_runtime_state.variable_pool, self.node_data, variables)
+        # 从节点提取metadata过滤规则
+        self._extract_metadata_filter_args(self.graph_runtime_state.variable_pool, self.node_data)
 
         # retrieve knowledge
         try:
@@ -99,6 +102,14 @@ class KnowledgeRetrievalNode(BaseNode[KnowledgeRetrievalNodeData]):
                     )
             # take the union of the datasets to remove duplicates
             node_data.dataset_ids = set(node_data.dataset_ids + authorized_dataset_ids.value)
+
+    def _extract_metadata_filter_args(self, variable_pool: VariablePool, node_data: KnowledgeRetrievalNodeData):
+        # Extract metadata variable values
+        filter_mode_to_metadata_filter_config_dict = node_data.filter_mode_to_metadata_filter_config_dict
+        if isinstance(filter_mode_to_metadata_filter_config_dict, dict):
+            for filter_mode, metadata_filter_config in filter_mode_to_metadata_filter_config_dict.items():
+                for filter_item in metadata_filter_config.filter_items:
+                    filter_item.arg = variable_pool.get(filter_item.value_selector).value
 
     def _fetch_dataset_retriever(self, node_data: KnowledgeRetrievalNodeData, query: str) -> list[dict[str, Any]]:
         available_datasets = []
@@ -160,6 +171,7 @@ class KnowledgeRetrievalNode(BaseNode[KnowledgeRetrievalNodeData]):
                     model_config=model_config,
                     model_instance=model_instance,
                     planning_strategy=planning_strategy,
+                    filter_mode_to_metadata_filter_config_dict=node_data.filter_mode_to_metadata_filter_config_dict
                 )
         elif node_data.retrieval_mode == DatasetRetrieveConfigEntity.RetrieveStrategy.MULTIPLE.value:
             if node_data.multiple_retrieval_config.reranking_mode == "reranking_model":
@@ -200,6 +212,7 @@ class KnowledgeRetrievalNode(BaseNode[KnowledgeRetrievalNodeData]):
                 reranking_model,
                 weights,
                 node_data.multiple_retrieval_config.reranking_enable,
+                filter_mode_to_metadata_filter_config_dict=node_data.filter_mode_to_metadata_filter_config_dict,
             )
         dify_documents = [item for item in all_documents if item.provider == "dify"]
         external_documents = [item for item in all_documents if item.provider == "external"]
@@ -265,6 +278,7 @@ class KnowledgeRetrievalNode(BaseNode[KnowledgeRetrievalNodeData]):
                                 "segment_word_count": segment.word_count,
                                 "segment_position": segment.position,
                                 "segment_index_node_hash": segment.index_node_hash,
+                                'doc_metadata': document.doc_metadata,
                             },
                             "title": document.name,
                         }

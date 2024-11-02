@@ -68,6 +68,7 @@ class OllamaEmbeddingModel(TextEmbeddingModel):
 
         # get model properties
         context_size = self._get_context_size(model, credentials)
+        print(f'[ollama embedding] context_size = {context_size}')
 
         inputs = []
         used_tokens = 0
@@ -75,6 +76,7 @@ class OllamaEmbeddingModel(TextEmbeddingModel):
         for text in texts:
             # Here token count is only an approximation based on the GPT2 tokenizer
             num_tokens = self._get_num_tokens_by_gpt2(text)
+            # print(f'[ollama embedding] num_tokens = {num_tokens}, text = {text}')
 
             if num_tokens >= context_size:
                 cutoff = int(np.floor(len(text) * (context_size / num_tokens)))
@@ -85,6 +87,8 @@ class OllamaEmbeddingModel(TextEmbeddingModel):
 
         # Prepare the payload for the request
         payload = {"input": inputs, "model": model, "options": {"use_mmap": True}}
+
+        # print(f'[ollama embedding] payload = {payload}')
 
         # Make the request to the Ollama API
         response = requests.post(endpoint_url, headers=headers, data=json.dumps(payload), timeout=(10, 300))

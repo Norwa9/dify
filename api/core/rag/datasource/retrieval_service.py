@@ -8,6 +8,7 @@ from core.rag.datasource.keyword.keyword_factory import Keyword
 from core.rag.datasource.vdb.vector_factory import Vector
 from core.rag.rerank.rerank_type import RerankMode
 from core.rag.retrieval.retrieval_methods import RetrievalMethod
+from core.workflow.nodes.metadata_entities import MetadataFilterConfig
 from extensions.ext_database import db
 from models.dataset import Dataset
 from services.external_knowledge_service import ExternalDatasetService
@@ -33,6 +34,7 @@ class RetrievalService:
         reranking_model: Optional[dict] = None,
         reranking_mode: Optional[str] = "reranking_model",
         weights: Optional[dict] = None,
+        filter_mode_to_metadata_filter_config_dict: Optional[dict[str, MetadataFilterConfig]] = None
     ):
         dataset = db.session.query(Dataset).filter(Dataset.id == dataset_id).first()
         if not dataset:
@@ -53,6 +55,7 @@ class RetrievalService:
                     "query": query,
                     "top_k": top_k,
                     "all_documents": all_documents,
+                    'filter_mode_to_metadata_filter_config_dict': filter_mode_to_metadata_filter_config_dict,
                     "exceptions": exceptions,
                 },
             )
@@ -71,6 +74,7 @@ class RetrievalService:
                     "reranking_model": reranking_model,
                     "all_documents": all_documents,
                     "retrieval_method": retrieval_method,
+                    'filter_mode_to_metadata_filter_config_dict': filter_mode_to_metadata_filter_config_dict,
                     "exceptions": exceptions,
                 },
             )
@@ -91,6 +95,7 @@ class RetrievalService:
                     "reranking_model": reranking_model,
                     "all_documents": all_documents,
                     "exceptions": exceptions,
+                    'filter_mode_to_metadata_filter_config_dict': filter_mode_to_metadata_filter_config_dict,
                 },
             )
             threads.append(full_text_index_thread)
@@ -148,6 +153,7 @@ class RetrievalService:
         reranking_model: Optional[dict],
         all_documents: list,
         retrieval_method: str,
+        filter_mode_to_metadata_filter_config_dict: Optional[dict[str, MetadataFilterConfig]],
         exceptions: list,
     ):
         with flask_app.app_context():
@@ -162,6 +168,7 @@ class RetrievalService:
                     top_k=top_k,
                     score_threshold=score_threshold,
                     filter={"group_id": [dataset.id]},
+                    filter_mode_to_metadata_filter_config_dict=filter_mode_to_metadata_filter_config_dict
                 )
 
                 if documents:
@@ -195,6 +202,7 @@ class RetrievalService:
         reranking_model: Optional[dict],
         all_documents: list,
         retrieval_method: str,
+        filter_mode_to_metadata_filter_config_dict: Optional[dict[str, MetadataFilterConfig]],
         exceptions: list,
     ):
         with flask_app.app_context():
@@ -205,7 +213,11 @@ class RetrievalService:
                     dataset=dataset,
                 )
 
-                documents = vector_processor.search_by_full_text(cls.escape_query_for_search(query), top_k=top_k)
+                documents = vector_processor.search_by_full_text(
+                    cls.escape_query_for_search(query),
+                    top_k=top_k,
+                    filter_mode_to_metadata_filter_config_dict=filter_mode_to_metadata_filter_config_dict
+                )
                 if documents:
                     if (
                         reranking_model

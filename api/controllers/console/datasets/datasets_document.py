@@ -49,6 +49,7 @@ from libs.login import login_required
 from models import Dataset, DatasetProcessRule, Document, DocumentSegment, UploadFile
 from services.dataset_service import DatasetService, DocumentService
 from tasks.add_document_to_index_task import add_document_to_index_task
+from tasks.document_indexing_update_task import document_indexing_update_task
 from tasks.remove_document_from_index_task import remove_document_from_index_task
 
 
@@ -254,6 +255,8 @@ class DatasetDocumentListApi(Resource):
             "doc_language", type=str, default="English", required=False, nullable=False, location="json"
         )
         parser.add_argument("retrieval_model", type=dict, required=False, nullable=False, location="json")
+        parser.add_argument('doc_metadata', type=str, required=False, nullable=True, location='json')
+        parser.add_argument('doc_type', type=str, required=False, nullable=True, location='json')
         args = parser.parse_args()
 
         if not dataset.indexing_technique and not args["indexing_technique"]:
@@ -735,15 +738,42 @@ class DocumentMetadataApi(DocumentResource):
         else:
             for key, value_type in metadata_schema.items():
                 value = doc_metadata.get(key)
-                if value is not None and isinstance(value, value_type):
-                    document.doc_metadata[key] = value
+                if value is not None:
+                    if isinstance(value, value_type):
+                        document.doc_metadata[key] = value
+                    elif is_convertible(value, value_type):
+                        document.doc_metadata[key] = value_type(value)
+                    else:
+                        document.doc_metadata[key] = None
 
         document.doc_type = doc_type
         document.updated_at = datetime.now(timezone.utc).replace(tzinfo=None)
         db.session.commit()
 
+        if document.doc_metadata:
+            # trigger async task
+            document_indexing_update_task.delay(document.dataset_id, document.id)
+
         return {"result": "success", "message": "Document metadata updated."}, 200
 
+# Adapt parameters to metadata types
+def adapt_metadata_type(value, to_type):
+    if value is not None:
+        if isinstance(value, to_type):
+            return value
+        elif is_convertible(value, to_type):
+            return to_type(value)
+    return None
+
+
+def is_convertible(value, to_type):
+    try:
+        # Attempts to convert a string to the specified type
+        to_type(value)
+        return True
+    except (ValueError, TypeError):
+        # Catch the conversion failure exception
+        return False
 
 class DocumentStatusApi(DocumentResource):
     @setup_required

@@ -6,7 +6,7 @@ import cn from '@/utils/classnames'
 
 type Props = {
   className?: string
-  onClick: () => void
+  onClick?: () => void
 }
 
 const AddButton: FC<Props> = ({

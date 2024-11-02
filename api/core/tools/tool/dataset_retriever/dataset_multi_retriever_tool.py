@@ -6,7 +6,7 @@ from pydantic import BaseModel, Field
 from core.callback_handler.index_tool_callback_handler import DatasetIndexToolCallbackHandler
 from core.model_manager import ModelManager
 from core.model_runtime.entities.model_entities import ModelType
-from core.rag.datasource.retrieval_service import RetrievalService
+import core.rag.datasource.retrieval_service
 from core.rag.rerank.rerank_model import RerankModelRunner
 from core.rag.retrieval.retrieval_methods import RetrievalMethod
 from core.tools.tool.dataset_retriever.dataset_retriever_base_tool import DatasetRetrieverBaseTool
@@ -164,7 +164,7 @@ class DatasetMultiRetrieverTool(DatasetRetrieverBaseTool):
 
             if dataset.indexing_technique == "economy":
                 # use keyword table query
-                documents = RetrievalService.retrieve(
+                documents = core.rag.datasource.retrieval_service.RetrievalService.retrieve(
                     retrieval_method="keyword_search",
                     dataset_id=dataset.id,
                     query=query,
@@ -175,7 +175,7 @@ class DatasetMultiRetrieverTool(DatasetRetrieverBaseTool):
             else:
                 if self.top_k > 0:
                     # retrieval source
-                    documents = RetrievalService.retrieve(
+                    documents = core.rag.datasource.retrieval_service.RetrievalService.retrieve(
                         retrieval_method=retrieval_model["search_method"],
                         dataset_id=dataset.id,
                         query=query,

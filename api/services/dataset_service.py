@@ -1,3 +1,4 @@
+import ast
 import datetime
 import json
 import logging
@@ -511,6 +512,15 @@ class DocumentService:
         return document
 
     @staticmethod
+    def get_documents(dataset_id: str, document_ids: list[str]) -> list[Document]:
+        documents = db.session.query(Document).filter(
+            Document.id.in_(document_ids),
+            Document.dataset_id == dataset_id
+        ).all()
+
+        return documents
+
+    @staticmethod
     def get_document_by_id(document_id: str) -> Optional[Document]:
         document = db.session.query(Document).filter(Document.id == document_id).first()
 
@@ -738,6 +748,7 @@ class DocumentService:
         documents = []
         batch = time.strftime("%Y%m%d%H%M%S") + str(random.randint(100000, 999999))
         if document_data.get("original_document_id"):
+            # 更新Document
             document = DocumentService.update_document_with_dataset_id(dataset, document_data, account)
             documents.append(document)
         else:
@@ -867,6 +878,8 @@ class DocumentService:
                                 account,
                                 page["page_name"],
                                 batch,
+                                document_data.get('doc_metadata'),
+                                document_data.get('doc_type')
                             )
                             db.session.add(document)
                             db.session.flush()
@@ -942,6 +955,8 @@ class DocumentService:
         account: Account,
         name: str,
         batch: str,
+        doc_type: Optional[str] = None,
+        doc_metadata: Optional[str] = None
     ):
         document = Document(
             tenant_id=dataset.tenant_id,
@@ -956,6 +971,8 @@ class DocumentService:
             created_by=account.id,
             doc_form=document_form,
             doc_language=document_language,
+            doc_metadata=ast.literal_eval(doc_metadata) if doc_metadata else None,
+            doc_type=doc_type
         )
         return document
 
@@ -983,6 +1000,12 @@ class DocumentService:
             raise NotFound("Document not found")
         if document.display_status != "available":
             raise ValueError("Document is not available")
+        # update document metadata TODO: test
+        if document_data.get("doc_metadata"):
+            document.doc_metadata = ast.literal_eval(document_data["doc_metadata"]) # 从字符串转为字典结构
+        # update document type
+        if document_data.get("doc_type"):
+            document.doc_type = document_data["doc_type"]
         # update document name
         if document_data.get("name"):
             document.name = document_data["name"]
@@ -1418,7 +1441,7 @@ class SegmentService:
 
             # save vector index
             try:
-                VectorService.create_segments_vector([args["keywords"]], [segment_document], dataset)
+                VectorService.create_segments_vector([args["keywords"]], [segment_document], dataset, document)
             except Exception as e:
                 logging.exception("create segment index failed")
                 segment_document.enabled = False
@@ -1486,7 +1509,7 @@ class SegmentService:
 
             try:
                 # save vector index
-                VectorService.create_segments_vector(keywords_list, pre_segment_data_list, dataset)
+                VectorService.create_segments_vector(keywords_list, pre_segment_data_list, dataset, document)
             except Exception as e:
                 logging.exception("create segment index failed")
                 for segment_document in segment_data_list:

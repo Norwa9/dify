@@ -3,6 +3,7 @@ from typing import Any, Literal, Optional, Union
 from pydantic import BaseModel
 
 from core.workflow.nodes.base import BaseNodeData
+from core.workflow.nodes.metadata_entities import MetadataFilterConfig
 
 
 class RerankingModelConfig(BaseModel):
@@ -81,6 +82,8 @@ class KnowledgeRetrievalNodeData(BaseNodeData):
     type: str = "knowledge-retrieval"
     query_variable_selector: list[str]
     authorized_dataset_ids_variable_selector: Optional[Union[list[str], str]] = None
+    # Filter Mode Selection e.g. 'must' or 'should' or 'must_not'
+    filter_mode_to_metadata_filter_config_dict: Optional[dict[str, MetadataFilterConfig]] = None
     dataset_ids: list[str]
     retrieval_mode: Literal["single", "multiple"]
     multiple_retrieval_config: Optional[MultipleRetrievalConfig] = None

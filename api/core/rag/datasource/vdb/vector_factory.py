@@ -36,6 +36,7 @@ class Vector:
 
     def _init_vector(self) -> BaseVector:
         vector_type = dify_config.VECTOR_STORE
+        print(f'vector_type1 = {vector_type}')
 
         if self._dataset.index_struct_dict:
             vector_type = self._dataset.index_struct_dict["type"]
@@ -51,7 +52,7 @@ class Vector:
 
         if not vector_type:
             raise ValueError("Vector store must be specified.")
-
+        print(f'vector_type2 = {vector_type}')
         vector_factory_cls = self.get_vector_factory(vector_type)
         return vector_factory_cls().init_vector(self._dataset, self._attributes, self._embeddings)
 
