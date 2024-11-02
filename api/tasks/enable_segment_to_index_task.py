@@ -15,7 +15,7 @@ from services.dataset_service import DocumentService
 
 
 @shared_task(queue="dataset")
-def enable_segment_to_index_task(dataset_id:str, segment_id: str):
+def enable_segment_to_index_task(dataset_id: str, segment_id: str):
     """
     Async enable segment to index
     :param segment_id:

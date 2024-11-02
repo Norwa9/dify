@@ -756,6 +756,7 @@ class DocumentMetadataApi(DocumentResource):
 
         return {"result": "success", "message": "Document metadata updated."}, 200
 
+
 # Adapt parameters to metadata types
 def adapt_metadata_type(value, to_type):
     if value is not None:
@@ -774,6 +775,7 @@ def is_convertible(value, to_type):
     except (ValueError, TypeError):
         # Catch the conversion failure exception
         return False
+
 
 class DocumentStatusApi(DocumentResource):
     @setup_required

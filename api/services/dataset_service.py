@@ -1002,7 +1002,7 @@ class DocumentService:
             raise ValueError("Document is not available")
         # update document metadata TODO: test
         if document_data.get("doc_metadata"):
-            document.doc_metadata = ast.literal_eval(document_data["doc_metadata"]) # 从字符串转为字典结构
+            document.doc_metadata = ast.literal_eval(document_data["doc_metadata"])  # 从字符串转为字典结构
         # update document type
         if document_data.get("doc_type"):
             document.doc_type = document_data["doc_type"]

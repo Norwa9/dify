@@ -3,10 +3,10 @@ import threading
 from flask import Flask, current_app
 from pydantic import BaseModel, Field
 
+import core.rag.datasource.retrieval_service
 from core.callback_handler.index_tool_callback_handler import DatasetIndexToolCallbackHandler
 from core.model_manager import ModelManager
 from core.model_runtime.entities.model_entities import ModelType
-import core.rag.datasource.retrieval_service
 from core.rag.rerank.rerank_model import RerankModelRunner
 from core.rag.retrieval.retrieval_methods import RetrievalMethod
 from core.tools.tool.dataset_retriever.dataset_retriever_base_tool import DatasetRetrieverBaseTool

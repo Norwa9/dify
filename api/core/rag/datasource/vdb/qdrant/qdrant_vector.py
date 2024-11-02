@@ -339,11 +339,11 @@ class QdrantVector(BaseVector):
             with_payload=True,
             with_vectors=True,
             # score_threshold=float(kwargs.get("score_threshold") or 0.0),
-            score_threshold = 0.0
+            score_threshold=0.0
         )
         docs = []
 
-        print(f'[search_by_vector] results = {results}')
+        # print(f'[search_by_vector] results = {results}')
 
         for result in results:
             metadata = result.payload.get(Field.METADATA_KEY.value) or {}
@@ -451,7 +451,7 @@ class QdrantVector(BaseVector):
         )
         results = response[0]
         documents = []
-        print(f'[search_by_full_text] results = {results}')
+        # print(f'[search_by_full_text] results = {results}')
         for result in results:
             if result:
                 document = self._document_from_scored_point(result, Field.CONTENT_KEY.value, Field.METADATA_KEY.value)

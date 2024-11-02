@@ -357,6 +357,7 @@ class DocumentExistsApi(DatasetApiResource):
         else:
             return {"exists": False, "document_id": document_id}, 404
 
+
 api.add_resource(DocumentAddByTextApi, "/datasets/<uuid:dataset_id>/document/create_by_text")
 api.add_resource(DocumentAddByFileApi, "/datasets/<uuid:dataset_id>/document/create_by_file")
 api.add_resource(DocumentUpdateByTextApi, "/datasets/<uuid:dataset_id>/documents/<uuid:document_id>/update_by_text")
