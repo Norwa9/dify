@@ -338,8 +338,7 @@ class QdrantVector(BaseVector):
             limit=kwargs.get("top_k", 4),
             with_payload=True,
             with_vectors=True,
-            # score_threshold=float(kwargs.get("score_threshold") or 0.0),
-            score_threshold=0.0
+            score_threshold=float(kwargs.get("score_threshold") or 0.0),
         )
         docs = []
 
