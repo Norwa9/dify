@@ -287,6 +287,7 @@ services:
 
   # Frontend web application.
   web:
+#    image: langgenius/dify-web:0.10.1
     build:
       context: ../web
       dockerfile: Dockerfile  # 请确保web目录下存在Dockerfile
@@ -482,6 +483,8 @@ services:
       - ./volumes/qdrant:/qdrant/storage
     environment:
       QDRANT_API_KEY: ${QDRANT_API_KEY:-difyai123456}
+#    ports:
+#      - "6333:6333" # qdranthttp端口
 
   # The pgvector vector database.
   pgvector:

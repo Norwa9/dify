@@ -19,7 +19,7 @@ COPY yarn.lock .
 # if you located in China, you can use taobao registry to speed up
 # RUN yarn install --frozen-lockfile --registry https://registry.npmmirror.com/
 
-RUN yarn install --frozen-lockfile
+RUN yarn install --frozen-lockfile --registry https://registry.npmmirror.com/
 
 # build resources
 FROM base AS builder
@@ -38,6 +38,7 @@ ENV EDITION=SELF_HOSTED
 ENV DEPLOY_ENV=PRODUCTION
 ENV CONSOLE_API_URL=http://127.0.0.1:5001
 ENV APP_API_URL=http://127.0.0.1:5001
+ENV HOST=0.0.0.0
 ENV PORT=3000
 ENV NEXT_TELEMETRY_DISABLED=1
 
